@@ -43,6 +43,7 @@ parser.add_argument("--img_size", type=int, default=128, help="size of each imag
 parser.add_argument("--mask_size", type=int, default=64, help="size of random mask")
 parser.add_argument("--channels", type=int, default=3, help="number of image channels")
 parser.add_argument("--sample_interval", type=int, default=500, help="interval between image sampling")
+parser.add_argument("--kind", type=str, default="mask", help="mask or mosaic")
 opt = parser.parse_args()
 print(opt)
 
@@ -87,13 +88,22 @@ transforms_ = [
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
 ]
 dataloader = DataLoader(
-    ImageDataset("../../data/%s" % opt.dataset_name, transforms_=transforms_),
+    ImageDataset(
+        "../../data/%s" % opt.dataset_name,
+        transforms_=transforms_,
+        kind=opt.kind
+    ),
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers=opt.n_cpu,
 )
 test_dataloader = DataLoader(
-    ImageDataset("../../data/%s" % opt.dataset_name, transforms_=transforms_, mode="val"),
+    ImageDataset(
+        "../../data/%s" % opt.dataset_name,
+        transforms_=transforms_,
+        mode="val",
+        kind=opt.kind
+    ),
     batch_size=12,
     shuffle=True,
     num_workers=1,

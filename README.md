@@ -1,5 +1,4 @@
 <p align="center"><img src="assets/logo.png" width="480"\></p>
-
 ## PyTorch-GAN
 Collection of PyTorch implementations of Generative Adversarial Network varieties presented in research papers. Model architectures will not always mirror the ones proposed in the papers, but I have chosen to focus on getting the core ideas covered instead of getting every layer configuration right. Contributions and suggestions of GANs to implement are very welcomed.
 
@@ -42,11 +41,24 @@ Collection of PyTorch implementations of Generative Adversarial Network varietie
     + [Wasserstein GAN DIV](#wasserstein-gan-div)
 
 ## Installation
+
+You can run this locally:
+
     $ git clone https://github.com/eriklindernoren/PyTorch-GAN
     $ cd PyTorch-GAN/
     $ sudo pip3 install -r requirements.txt
 
+Alternatively put it in an nvidia-docker:
+
+```bash
+docker build -t pytorch-gan .
+docker run --gpus all --rm -it --ipc=host -p 8443:8443 -p 8888:8888 pytorch-gan
+```
+
+
+
 ## Implementations   
+
 ### Auxiliary Classifier GAN
 _Auxiliary Classifier Generative Adversarial Network_
 
@@ -577,7 +589,7 @@ Trains a classifier on images that have been translated from the source domain (
 ```
 $ cd implementations/pixelda/
 $ python3 pixelda.py
-```  
+```
 | Method       | Accuracy  |
 | ------------ |:---------:|
 | Naive        | 55%       |
