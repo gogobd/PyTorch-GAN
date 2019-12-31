@@ -4,6 +4,7 @@
 *.hdf5
 .DS_Store
 ._*
+package.tgz
 
 data/*/
 implementations/*/data

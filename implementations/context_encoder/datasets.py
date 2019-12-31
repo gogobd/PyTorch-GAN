@@ -50,6 +50,8 @@ class ImageDataset(Dataset):
         mosaic_size = random.randint(8, 32)
         mosaic_transform = transforms.Compose(
             [
+#                transforms.Normalize((1, 1, 1), (0.5, 0.5, 0.5)),
+#                transforms.ToPILImage(),
                 transforms.Resize((self.img_size // mosaic_size, self.img_size // mosaic_size), Image.BICUBIC),
                 transforms.Resize((self.img_size, self.img_size), Image.NEAREST),
                 self.transform,
