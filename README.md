@@ -302,7 +302,7 @@ Image-to-image translation is a class of vision and graphics problems where the 
 $ cd data/
 $ bash download_cyclegan_dataset.sh monet2photo
 $ cd ../implementations/cyclegan/
-$ python3 cyclegan.py --dataset_name monet2photo
+$ python3 cyclegan.py --dataset_name monet2photo --img_height 320 --img_width 320 --n_cpu 20
 ```
 
 <p align="center">

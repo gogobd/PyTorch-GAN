@@ -112,6 +112,8 @@ transforms_ = [
     transforms.Resize(int(opt.img_height * 1.12), Image.BICUBIC),
     transforms.RandomCrop((opt.img_height, opt.img_width)),
     transforms.RandomHorizontalFlip(),
+    transforms.RandomVerticalFlip(),
+    transforms.ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.1),
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
 ]

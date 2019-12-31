@@ -1,3 +1,3 @@
 #!/bin/sh
 rm package.tgz
-tar --exclude './data' --exclude './implementations/context_encoder/checkpoints' -zcvf package.tgz ./*
+tar --exclude '__pycache__' --exclude 'saved_models' --exclude 'images' --exclude './data' --exclude './implementations/cyclegan/core' -zcvf package.tgz ./*
