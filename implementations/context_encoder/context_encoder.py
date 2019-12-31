@@ -45,7 +45,7 @@ parser.add_argument("--channels", type=int, default=3, help="number of image cha
 parser.add_argument("--sample_interval", type=int, default=500, help="interval between image sampling")
 parser.add_argument("--save_interval", type=int, default=500, help="interval between model saves")
 parser.add_argument("--load_checkpoint", type=str, default='', help="load model from path")
-parser.add_argument("--checkpoint_name_base", type=str, default='save_{dataset_name}_{epoch}.pt', help="base path for checkpoints")
+parser.add_argument("--checkpoint_name_base", type=str, default='save_{dataset_name}_{epoch}_{batch}.pt', help="base path for checkpoints")
 parser.add_argument("--kind", type=str, default="mask", help="mask or mosaic")
 opt = parser.parse_args()
 print(opt)
@@ -241,6 +241,7 @@ for epoch in range(epoch, opt.n_epochs):
                 **{
                     'dataset_name': str(opt.dataset_name),
                     'epoch': epoch,
+                    'batch': batches_done,
                 }
             )
             save_model(os.path.join('checkpoints', checkpoint_name))
