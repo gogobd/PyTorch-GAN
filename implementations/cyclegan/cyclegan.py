@@ -34,8 +34,8 @@ parser.add_argument("--n_cpu", type=int, default=8, help="number of cpu threads 
 parser.add_argument("--img_height", type=int, default=256, help="size of image height")
 parser.add_argument("--img_width", type=int, default=256, help="size of image width")
 parser.add_argument("--channels", type=int, default=3, help="number of image channels")
-parser.add_argument("--sample_interval", type=int, default=100, help="interval between saving generator outputs")
-parser.add_argument("--checkpoint_interval", type=int, default=-1, help="interval between saving model checkpoints")
+parser.add_argument("--sample_interval", type=int, default=500, help="interval between saving generator outputs")
+parser.add_argument("--checkpoint_interval", type=int, default=1500, help="interval between saving model checkpoints")
 parser.add_argument("--n_residual_blocks", type=int, default=9, help="number of residual blocks in generator")
 parser.add_argument("--lambda_cyc", type=float, default=10.0, help="cycle loss weight")
 parser.add_argument("--lambda_id", type=float, default=5.0, help="identity loss weight")
@@ -109,8 +109,9 @@ fake_B_buffer = ReplayBuffer()
 
 # Image transformations
 transforms_ = [
-    transforms.Resize(int(opt.img_height * 1.12), Image.BICUBIC),
-    transforms.RandomCrop((opt.img_height, opt.img_width)),
+#    transforms.Resize(int(opt.img_height * 1.12), Image.BICUBIC),
+#    transforms.RandomCrop((opt.img_height, opt.img_width)),
+    transforms.Resize(int(opt.img_height), Image.BICUBIC),
     transforms.RandomHorizontalFlip(),
     transforms.RandomVerticalFlip(),
     transforms.ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.1),
@@ -273,14 +274,15 @@ for epoch in range(opt.epoch, opt.n_epochs):
         if batches_done % opt.sample_interval == 0:
             sample_images(batches_done)
 
+        if opt.checkpoint_interval != -1 and batches_done % opt.checkpoint_interval == 0:
+            # Save model checkpoints
+            print("Saving...")
+            torch.save(G_AB.state_dict(), "saved_models/%s/G_AB_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
+            torch.save(G_BA.state_dict(), "saved_models/%s/G_BA_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
+            torch.save(D_A.state_dict(), "saved_models/%s/D_A_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
+            torch.save(D_B.state_dict(), "saved_models/%s/D_B_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
+
     # Update learning rates
     lr_scheduler_G.step()
     lr_scheduler_D_A.step()
     lr_scheduler_D_B.step()
-
-    if opt.checkpoint_interval != -1 and epoch % opt.checkpoint_interval == 0:
-        # Save model checkpoints
-        torch.save(G_AB.state_dict(), "saved_models/%s/G_AB_%d.pth" % (opt.dataset_name, epoch))
-        torch.save(G_BA.state_dict(), "saved_models/%s/G_BA_%d.pth" % (opt.dataset_name, epoch))
-        torch.save(D_A.state_dict(), "saved_models/%s/D_A_%d.pth" % (opt.dataset_name, epoch))
-        torch.save(D_B.state_dict(), "saved_models/%s/D_B_%d.pth" % (opt.dataset_name, epoch))
