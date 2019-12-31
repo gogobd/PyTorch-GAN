@@ -43,9 +43,14 @@ parser.add_argument("--img_size", type=int, default=128, help="size of each imag
 parser.add_argument("--mask_size", type=int, default=64, help="size of random mask")
 parser.add_argument("--channels", type=int, default=3, help="number of image channels")
 parser.add_argument("--sample_interval", type=int, default=500, help="interval between image sampling")
+parser.add_argument("--save_interval", type=int, default=500, help="interval between model saves")
+parser.add_argument("--load_checkpoint", type=str, default='', help="load model from path")
+parser.add_argument("--checkpoint_name_base", type=str, default='save_{dataset_name}_{epoch}.pt', help="base path for checkpoints")
 parser.add_argument("--kind", type=str, default="mask", help="mask or mosaic")
 opt = parser.parse_args()
 print(opt)
+
+os.makedirs('checkpoints', exist_ok=True)
 
 cuda = True if torch.cuda.is_available() else False
 
@@ -84,6 +89,9 @@ discriminator.apply(weights_init_normal)
 # Dataset loader
 transforms_ = [
     transforms.Resize((opt.img_size, opt.img_size), Image.BICUBIC),
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.RandomVerticalFlip(p=0.1),
+    transforms.ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.1),
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
 ]
@@ -129,12 +137,52 @@ def save_sample(batches_done):
     sample = torch.cat((masked_samples.data, filled_samples.data, samples.data), -2)
     save_image(sample, "images/%d.png" % batches_done, nrow=6, normalize=True)
 
+def save_model(path):
+    global batches_done
+    global epoch
+    global generator
+    global discriminator
+    global optimizer_G
+    global optimizer_D
+    torch.save(
+        {
+            'batches_done': batches_done,
+            'epoch': epoch,
+            'generator': generator.state_dict(),
+            'discriminator': discriminator.state_dict(),
+            'optimizer_G': optimizer_G.state_dict(),
+            'optimizer_D': optimizer_D.state_dict(),
+        },
+        path,
+    )
+
+def load_model(path):
+    global batches_done
+    global epoch
+    global generator
+    global discriminator
+    global optimizer_G
+    global optimizer_D
+    checkpoint = torch.load(path)
+    batches_done = checkpoint['batches_done']
+    epoch = checkpoint['epoch']
+    generator.load_state_dict(checkpoint['generator'])
+    discriminator.load_state_dict(checkpoint['discriminator'])
+    optimizer_G.load_state_dict(checkpoint['optimizer_G'])
+    optimizer_D.load_state_dict(checkpoint['optimizer_D'])
+
+
+epoch = 0
+if opt.load_checkpoint:
+    print("Loading model from {}".format(opt.load_checkpoint))
+    load_model(opt.load_checkpoint)
+
 
 # ----------
 #  Training
 # ----------
 
-for epoch in range(opt.n_epochs):
+for epoch in range(epoch, opt.n_epochs):
     for i, (imgs, masked_imgs, masked_parts) in enumerate(dataloader):
 
         # Adversarial ground truths
@@ -187,3 +235,12 @@ for epoch in range(opt.n_epochs):
         batches_done = epoch * len(dataloader) + i
         if batches_done % opt.sample_interval == 0:
             save_sample(batches_done)
+
+        if batches_done % opt.save_interval == 0:
+            checkpoint_name = opt.checkpoint_name_base.format(
+                **{
+                    'dataset_name': str(opt.dataset_name),
+                    'epoch': epoch,
+                }
+            )
+            save_model(os.path.join('checkpoints', checkpoint_name))
