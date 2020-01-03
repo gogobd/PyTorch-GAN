@@ -37,6 +37,7 @@ RUN conda install pytorch torchvision -c soumith && \
 	conda install -c conda-forge jupyterlab && \
 	conda install -c anaconda nb_conda
 
+# Newer version: https://github.com/cdr/code-server/releases/download/2.1692-vsc1.39.2/code-server2.1692-vsc1.39.2-linux-x86_64.tar.gz
 RUN wget https://github.com/codercom/code-server/releases/download/1.408-vsc1.32.0/code-server1.408-vsc1.32.0-linux-x64.tar.gz && \
     tar -xzvf code-server1.408-vsc1.32.0-linux-x64.tar.gz && chmod +x code-server1.408-vsc1.32.0-linux-x64/code-server
  
@@ -47,4 +48,3 @@ WORKDIR /PyTorch-GAN
 # Start container in notebook mode
 CMD /code-server1.408-vsc1.32.0-linux-x64/code-server --allow-http --no-auth --data-dir / & \
     jupyter-lab --ip="*" --no-browser --allow-root
-    
