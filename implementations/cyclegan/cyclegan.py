@@ -23,6 +23,7 @@ import torch
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--epoch", type=int, default=0, help="epoch to start training from")
+parser.add_argument("--load_model", type=str, default='', help="model to load (format: epoch_batch)")
 parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
 parser.add_argument("--dataset_name", type=str, default="monet2photo", help="name of the dataset")
 parser.add_argument("--batch_size", type=int, default=1, help="size of the batches")
@@ -70,25 +71,31 @@ if cuda:
     criterion_cycle.cuda()
     criterion_identity.cuda()
 
-if opt.epoch != 0:
-    # Load pretrained models
-    G_AB.load_state_dict(torch.load("saved_models/%s/G_AB_%d.pth" % (opt.dataset_name, opt.epoch)))
-    G_BA.load_state_dict(torch.load("saved_models/%s/G_BA_%d.pth" % (opt.dataset_name, opt.epoch)))
-    D_A.load_state_dict(torch.load("saved_models/%s/D_A_%d.pth" % (opt.dataset_name, opt.epoch)))
-    D_B.load_state_dict(torch.load("saved_models/%s/D_B_%d.pth" % (opt.dataset_name, opt.epoch)))
-else:
-    # Initialize weights
-    G_AB.apply(weights_init_normal)
-    G_BA.apply(weights_init_normal)
-    D_A.apply(weights_init_normal)
-    D_B.apply(weights_init_normal)
-
 # Optimizers
 optimizer_G = torch.optim.Adam(
     itertools.chain(G_AB.parameters(), G_BA.parameters()), lr=opt.lr, betas=(opt.b1, opt.b2)
 )
 optimizer_D_A = torch.optim.Adam(D_A.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
 optimizer_D_B = torch.optim.Adam(D_B.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
+
+if opt.load_model != '':
+    # Load pretrained models
+    print('Loading model %s/...%s' % (opt.dataset_name, opt.load_model))
+    G_AB.load_state_dict(torch.load("saved_models/%s/G_AB_%s.pth" % (opt.dataset_name, opt.load_model)))
+    G_BA.load_state_dict(torch.load("saved_models/%s/G_BA_%s.pth" % (opt.dataset_name, opt.load_model)))
+    D_A.load_state_dict(torch.load("saved_models/%s/D_A_%s.pth" % (opt.dataset_name, opt.load_model)))
+    D_B.load_state_dict(torch.load("saved_models/%s/D_B_%s.pth" % (opt.dataset_name, opt.load_model)))
+
+    # optimizer_G.load_state_dict(torch.load("saved_models/%s/optimizer_G_%s.pth" % (opt.dataset_name, epoch, batches_done))
+    # optimizer_D_A.load_state_dict(torch.load("saved_models/%s/optimizer_D_A_%s.pth" % (opt.dataset_name, epoch, batches_done))
+    # optimizer_D_B.load_state_dict(torch.load("saved_models/%s/optimizer_D_B_%s.pth" % (opt.dataset_name, epoch, batches_done))
+
+else:
+    # Initialize weights
+    G_AB.apply(weights_init_normal)
+    G_BA.apply(weights_init_normal)
+    D_A.apply(weights_init_normal)
+    D_B.apply(weights_init_normal)
 
 # Learning rate update schedulers
 lr_scheduler_G = torch.optim.lr_scheduler.LambdaLR(
@@ -152,7 +159,6 @@ def sample_images(batches_done):
     # Arange images along y-axis
     image_grid = torch.cat((real_A, fake_B, real_B, fake_A), 1)
     save_image(image_grid, "images/%s/%s.png" % (opt.dataset_name, batches_done), normalize=False)
-
 
 # ----------
 #  Training
@@ -276,11 +282,14 @@ for epoch in range(opt.epoch, opt.n_epochs):
 
         if opt.checkpoint_interval != -1 and batches_done % opt.checkpoint_interval == 0:
             # Save model checkpoints
-            print("Saving...")
+            print(" *")
             torch.save(G_AB.state_dict(), "saved_models/%s/G_AB_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
             torch.save(G_BA.state_dict(), "saved_models/%s/G_BA_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
             torch.save(D_A.state_dict(), "saved_models/%s/D_A_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
             torch.save(D_B.state_dict(), "saved_models/%s/D_B_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
+            torch.save(optimizer_G.state_dict(), "saved_models/%s/optimizer_G_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
+            torch.save(optimizer_D_A.state_dict(), "saved_models/%s/optimizer_D_A_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
+            torch.save(optimizer_D_B.state_dict(), "saved_models/%s/optimizer_D_B_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
 
     # Update learning rates
     lr_scheduler_G.step()
