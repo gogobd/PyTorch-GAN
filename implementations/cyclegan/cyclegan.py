@@ -88,7 +88,6 @@ if opt.load_model != '':
     optimizer_G.load_state_dict(torch.load("saved_models/%s/optimizer_G_%s.pth" % (opt.dataset_name, opt.load_model)))
     optimizer_D_A.load_state_dict(torch.load("saved_models/%s/optimizer_D_A_%s.pth" % (opt.dataset_name, opt.load_model)))
     optimizer_D_B.load_state_dict(torch.load("saved_models/%s/optimizer_D_B_%s.pth" % (opt.dataset_name, opt.load_model)))
-
 else:
     # Initialize weights
     G_AB.apply(weights_init_normal)
