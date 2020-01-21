@@ -89,12 +89,17 @@ optimizer_D_B = torch.optim.Adam(D_B.parameters(), lr=opt.lr, betas=(opt.b1, opt
 # Input tensor type
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
 
-# Dataset loader
+# Random transforms
 transforms_ = [
     transforms.Resize((opt.img_height, opt.img_width), Image.BICUBIC),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomVerticalFlip(),
+    transforms.ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.1),
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
 ]
+
+# Dataset loader
 dataloader = DataLoader(
     ImageDataset("../../data/%s" % opt.dataset_name, transforms_=transforms_, mode="train"),
     batch_size=opt.batch_size,
@@ -102,8 +107,8 @@ dataloader = DataLoader(
     num_workers=opt.n_cpu,
 )
 val_dataloader = DataLoader(
-    ImageDataset("../../data/%s" % opt.dataset_name, transforms_=transforms_, mode="val"),
-    batch_size=16,
+    ImageDataset("../../data/%s" % opt.dataset_name, transforms_=transforms_, mode="test"),
+    batch_size=4,
     shuffle=True,
     num_workers=opt.n_cpu,
 )
@@ -119,7 +124,7 @@ def sample_images(batches_done):
     real_B = Variable(imgs["B"].type(Tensor))
     fake_A = G_BA(real_B)
     img_sample = torch.cat((real_A.data, fake_B.data, real_B.data, fake_A.data), 0)
-    save_image(img_sample, "images/%s/%s.png" % (opt.dataset_name, batches_done), nrow=8, normalize=True)
+    save_image(img_sample, "images/%s/%s.png" % (opt.dataset_name, batches_done), nrow=4, normalize=True)
 
 
 # ----------
