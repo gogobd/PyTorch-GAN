@@ -353,7 +353,7 @@ While humans easily recognize relations between data from different domains with
 $ cd data/
 $ bash download_pix2pix_dataset.sh edges2shoes
 $ cd ../implementations/discogan/
-$ python3 discogan.py --dataset_name edges2shoes
+$ python3 discogan.py --dataset_name edges2shoes --n_cpu 20 --img_width 320 --img_height 320 --checkpoint_interval 1 --batch_size 16
 ```
 
 <p align="center">
