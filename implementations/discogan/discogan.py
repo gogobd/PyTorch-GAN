@@ -16,6 +16,7 @@ from torch.autograd import Variable
 
 from models import *
 from datasets import *
+from utils import *
 
 import torch.nn as nn
 import torch.nn.functional as F
