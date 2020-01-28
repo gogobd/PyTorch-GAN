@@ -66,25 +66,28 @@ if cuda:
     cycle_loss.cuda()
     pixelwise_loss.cuda()
 
-if opt.epoch != 0:
-    # Load pretrained models
-    G_AB.load_state_dict(torch.load("saved_models/%s/G_AB_%d.pth" % (opt.dataset_name, opt.epoch)))
-    G_BA.load_state_dict(torch.load("saved_models/%s/G_BA_%d.pth" % (opt.dataset_name, opt.epoch)))
-    D_A.load_state_dict(torch.load("saved_models/%s/D_A_%d.pth" % (opt.dataset_name, opt.epoch)))
-    D_B.load_state_dict(torch.load("saved_models/%s/D_B_%d.pth" % (opt.dataset_name, opt.epoch)))
-else:
-    # Initialize weights
-    G_AB.apply(weights_init_normal)
-    G_BA.apply(weights_init_normal)
-    D_A.apply(weights_init_normal)
-    D_B.apply(weights_init_normal)
-
 # Optimizers
 optimizer_G = torch.optim.Adam(
     itertools.chain(G_AB.parameters(), G_BA.parameters()), lr=opt.lr, betas=(opt.b1, opt.b2)
 )
 optimizer_D_A = torch.optim.Adam(D_A.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
 optimizer_D_B = torch.optim.Adam(D_B.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
+
+if opt.epoch != 0:
+    # Load pretrained models
+    G_AB.load_state_dict(torch.load("saved_models/%s/G_AB_%d.pth" % (opt.dataset_name, opt.epoch)))
+    G_BA.load_state_dict(torch.load("saved_models/%s/G_BA_%d.pth" % (opt.dataset_name, opt.epoch)))
+    D_A.load_state_dict(torch.load("saved_models/%s/D_A_%d.pth" % (opt.dataset_name, opt.epoch)))
+    D_B.load_state_dict(torch.load("saved_models/%s/D_B_%d.pth" % (opt.dataset_name, opt.epoch)))
+    # optimizer_G.load_state_dict(torch.load("saved_models/%s/optimizer_G_%s.pth" % (opt.dataset_name, opt.load_model)))
+    # optimizer_D_A.load_state_dict(torch.load("saved_models/%s/optimizer_D_A_%s.pth" % (opt.dataset_name, opt.load_model)))
+    # optimizer_D_B.load_state_dict(torch.load("saved_models/%s/optimizer_D_B_%s.pth" % (opt.dataset_name, opt.load_model)))
+else:
+    # Initialize weights
+    G_AB.apply(weights_init_normal)
+    G_BA.apply(weights_init_normal)
+    D_A.apply(weights_init_normal)
+    D_B.apply(weights_init_normal)
 
 # Input tensor type
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
@@ -244,3 +247,6 @@ for epoch in range(opt.epoch, opt.n_epochs):
         torch.save(G_BA.state_dict(), "saved_models/%s/G_BA_%d.pth" % (opt.dataset_name, epoch))
         torch.save(D_A.state_dict(), "saved_models/%s/D_A_%d.pth" % (opt.dataset_name, epoch))
         torch.save(D_B.state_dict(), "saved_models/%s/D_B_%d.pth" % (opt.dataset_name, epoch))
+        # torch.save(optimizer_G.state_dict(), "saved_models/%s/optimizer_G_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
+        # torch.save(optimizer_D_A.state_dict(), "saved_models/%s/optimizer_D_A_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
+        # torch.save(optimizer_D_B.state_dict(), "saved_models/%s/optimizer_D_B_%d_%d.pth" % (opt.dataset_name, epoch, batches_done))
