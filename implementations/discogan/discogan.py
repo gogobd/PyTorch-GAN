@@ -35,6 +35,8 @@ parser.add_argument("--img_width", type=int, default=64, help="size of image wid
 parser.add_argument("--channels", type=int, default=3, help="number of image channels")
 parser.add_argument("--sample_interval", type=int, default=100, help="interval between saving generator samples")
 parser.add_argument("--checkpoint_interval", type=int, default=-1, help="interval between model checkpoints")
+parser.add_argument("--lambda_cyc", type=float, default=10.0, help="cycle loss weight")
+parser.add_argument("--lambda_pix", type=float, default=5.0, help="pixelwise loss weight")
 opt = parser.parse_args()
 print(opt)
 
@@ -79,9 +81,9 @@ if opt.epoch != 0:
     G_BA.load_state_dict(torch.load("saved_models/%s/G_BA_%d.pth" % (opt.dataset_name, opt.epoch)))
     D_A.load_state_dict(torch.load("saved_models/%s/D_A_%d.pth" % (opt.dataset_name, opt.epoch)))
     D_B.load_state_dict(torch.load("saved_models/%s/D_B_%d.pth" % (opt.dataset_name, opt.epoch)))
-    # optimizer_G.load_state_dict(torch.load("saved_models/%s/optimizer_G_%s.pth" % (opt.dataset_name, opt.load_model)))
-    # optimizer_D_A.load_state_dict(torch.load("saved_models/%s/optimizer_D_A_%s.pth" % (opt.dataset_name, opt.load_model)))
-    # optimizer_D_B.load_state_dict(torch.load("saved_models/%s/optimizer_D_B_%s.pth" % (opt.dataset_name, opt.load_model)))
+    optimizer_G.load_state_dict(torch.load("saved_models/%s/optimizer_G_%s.pth" % (opt.dataset_name, opt.load_model)))
+    optimizer_D_A.load_state_dict(torch.load("saved_models/%s/optimizer_D_A_%s.pth" % (opt.dataset_name, opt.load_model)))
+    optimizer_D_B.load_state_dict(torch.load("saved_models/%s/optimizer_D_B_%s.pth" % (opt.dataset_name, opt.load_model)))
 else:
     # Initialize weights
     G_AB.apply(weights_init_normal)
@@ -172,7 +174,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
         loss_cycle = (loss_cycle_A + loss_cycle_B) / 2
 
         # Total loss
-        loss_G = loss_GAN + loss_cycle + loss_pixelwise
+        loss_G = loss_GAN + opt.lambda_cyc * loss_cycle + opt.lambda_pix * loss_pixelwise
 
         loss_G.backward()
         optimizer_G.step()
