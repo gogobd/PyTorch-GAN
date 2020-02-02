@@ -38,8 +38,10 @@ parser.add_argument("--img_width", type=int, default=64, help="size of image wid
 parser.add_argument("--channels", type=int, default=3, help="number of image channels")
 parser.add_argument("--sample_interval", type=int, default=100, help="interval between saving generator samples")
 parser.add_argument("--checkpoint_interval", type=int, default=-1, help="interval between model checkpoints")
+parser.add_argument("--lambda_gan", type=float, default=1.0, help="GAN loss weight")
 parser.add_argument("--lambda_cyc", type=float, default=10.0, help="cycle loss weight")
-parser.add_argument("--lambda_pix", type=float, default=5.0, help="pixelwise loss weight")
+parser.add_argument("--lambda_pix", type=float, default=2.5, help="pixelwise loss weight")
+parser.add_argument("--lambda_id", type=float, default=1.5, help="identity loss weight")
 opt = parser.parse_args()
 print(opt)
 
@@ -51,6 +53,7 @@ os.makedirs("saved_models/%s" % opt.dataset_name, exist_ok=True)
 adversarial_loss = torch.nn.MSELoss()
 cycle_loss = torch.nn.L1Loss()
 pixelwise_loss = torch.nn.L1Loss()
+criterion_identity = torch.nn.L1Loss()
 
 cuda = torch.cuda.is_available()
 
@@ -109,24 +112,37 @@ lr_scheduler_D_B = torch.optim.lr_scheduler.LambdaLR(
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
 
 # Random transforms
-transforms_ = [
-    transforms.Resize((opt.img_height, opt.img_width), Image.BICUBIC),
+random_transforms_ = [
     transforms.RandomHorizontalFlip(),
     transforms.RandomVerticalFlip(),
     transforms.ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.1),
+]
+# Transforms
+transforms_ = [
+    transforms.Resize((opt.img_height, opt.img_width), Image.BICUBIC),
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
 ]
 
 # Dataset loader
 dataloader = DataLoader(
-    ImageDataset("../../data/%s" % opt.dataset_name, transforms_=transforms_, mode="train"),
+    ImageDataset_Pixellated(
+        "../../data/%s/%%s/A" % opt.dataset_name,
+        mode="train",
+        transforms_=transforms_,
+        random_transforms_=random_transforms_,
+    ),
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers=opt.n_cpu,
 )
 val_dataloader = DataLoader(
-    ImageDataset("../../data/%s" % opt.dataset_name, transforms_=transforms_, mode="test"),
+    ImageDataset_Pixellated(
+        "../../data/%s/%%s/A" % opt.dataset_name,
+        mode="test",
+        transforms_=transforms_,
+        random_transforms_=random_transforms_,
+    ),
     batch_size=4,
     shuffle=True,
     num_workers=opt.n_cpu,
@@ -171,6 +187,12 @@ for epoch in range(opt.epoch, opt.n_epochs):
 
         optimizer_G.zero_grad()
 
+        # Identity loss
+        loss_id_A = criterion_identity(G_BA(real_A), real_A)
+        loss_id_B = criterion_identity(G_AB(real_B), real_B)
+
+        loss_identity = (loss_id_A + loss_id_B) / 2
+
         # GAN loss
         fake_B = G_AB(real_A)
         loss_GAN_AB = adversarial_loss(D_B(fake_B), valid)
@@ -188,7 +210,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
         loss_cycle = (loss_cycle_A + loss_cycle_B) / 2
 
         # Total loss
-        loss_G = loss_GAN + opt.lambda_cyc * loss_cycle + opt.lambda_pix * loss_pixelwise
+        loss_G = opt.lambda_gan * loss_GAN + opt.lambda_cyc * loss_cycle + opt.lambda_pix * loss_pixelwise + opt.lambda_id * loss_identity
 
         loss_G.backward()
         optimizer_G.step()
@@ -238,7 +260,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
 
         # Print log
         sys.stdout.write(
-            "\r[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f, adv: %f, pixel: %f, cycle: %f] ETA: %s"
+            "\r[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f, adv: %f, pixel: %f, cycle: %f, identity: %f] ETA: %s"
             % (
                 epoch,
                 opt.n_epochs,
@@ -249,6 +271,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
                 loss_GAN.item(),
                 loss_pixelwise.item(),
                 loss_cycle.item(),
+                loss_identity.item(),
                 time_left,
             )
         )
