@@ -137,8 +137,8 @@ dataloader = DataLoader(
     num_workers=opt.n_cpu,
 )
 val_dataloader = DataLoader(
-    ImageDataset(
-        "../../data/%s/" % opt.dataset_name,
+    ImageDataset_Pixellated(
+        "../../data/%s/%%s/A" % opt.dataset_name,
         mode="test",
         transforms_=transforms_,
         random_transforms_=random_transforms_,
@@ -147,6 +147,17 @@ val_dataloader = DataLoader(
     shuffle=True,
     num_workers=opt.n_cpu,
 )
+# test_dataloader = DataLoader(
+#     ImageDataset(
+#         "../../data/%s/" % opt.dataset_name,
+#         mode="test",
+#         transforms_=transforms_,
+#         random_transforms_=random_transforms_,
+#     ),
+#     batch_size=4,
+#     shuffle=True,
+#     num_workers=opt.n_cpu,
+# )
 
 
 def sample_images(batches_done):

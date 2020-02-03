@@ -33,7 +33,7 @@ class ImageDataset(Dataset):
 
         item_A = self.transform(image_A)
         item_B = self.transform(image_B)
-        
+
         return {"A": item_A, "B": item_B}
 
     def __len__(self):
@@ -64,17 +64,15 @@ class ImageDataset_Pixellated(Dataset):
         img_B = img.copy()
         img_M = img.copy()
 
-        # Paste random patch
+        # Paste pixellated patch
         patch_size_w = random.randrange(16, w)
         patch_size_h = random.randrange(16, h)
         x1 = random.randint(1, w-patch_size_w)
         y1 = random.randint(1, h-patch_size_h)
         x2 = x1+patch_size_w
         y2 = y1+patch_size_h
-        # print(x1,y1,x2,y2)
         img_M = img_M.crop((x1, y1, x2, y2))
-        # Create pixellated image
-        pixel_size = max(2, random.randint(int(patch_size_w/24), int(patch_size_w/4)))
+        pixel_size = max(4, random.randint(int(patch_size_w/24), int(patch_size_w/4)))
         img_M = img_M.resize(
             (
                 patch_size_w//pixel_size + 1,
