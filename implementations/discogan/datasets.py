@@ -10,7 +10,8 @@ from PIL import Image
 import torchvision.transforms as transforms
 
 class ImageDataset(Dataset):
-    def __init__(self, root, transforms_=None, mode='train'):
+    def __init__(self, root, transforms_=None, random_transforms_=None, mode='train'):
+        self.random_transform = transforms.Compose(random_transforms_)
         self.transform = transforms.Compose(transforms_)
 
         self.files_A = sorted(glob.glob(os.path.join(root, "%s/A" % mode) + "/*.*"))
@@ -27,12 +28,12 @@ class ImageDataset(Dataset):
         if image_B.mode != "RGB":
             image_B = to_rgb(image_B)
 
-        if np.random.random() < 0.5:
-            image_A = Image.fromarray(np.array(image_A)[:, ::-1, :], 'RGB')
-            image_B = Image.fromarray(np.array(image_B)[:, ::-1, :], 'RGB')
+        item_A = self.random_transform(image_A)
+        item_B = self.random_transform(image_B)
 
         item_A = self.transform(image_A)
         item_B = self.transform(image_B)
+        
         return {"A": item_A, "B": item_B}
 
     def __len__(self):

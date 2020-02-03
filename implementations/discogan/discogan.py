@@ -137,8 +137,8 @@ dataloader = DataLoader(
     num_workers=opt.n_cpu,
 )
 val_dataloader = DataLoader(
-    ImageDataset_Pixellated(
-        "../../data/%s/%%s/A" % opt.dataset_name,
+    ImageDataset(
+        "../../data/%s/" % opt.dataset_name,
         mode="test",
         transforms_=transforms_,
         random_transforms_=random_transforms_,
