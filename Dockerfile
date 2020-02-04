@@ -35,7 +35,8 @@ RUN conda install pytorch torchvision -c soumith && \
     conda install scikit-image && \
 	conda install -c anaconda jupyter && \
 	conda install -c conda-forge jupyterlab && \
-	conda install -c anaconda nb_conda
+	conda install -c anaconda nb_conda && \
+    conda install -c conda-forge visdom 
 
 RUN wget https://github.com/cdr/code-server/releases/download/2.1692-vsc1.39.2/code-server2.1692-vsc1.39.2-linux-x86_64.tar.gz && \
     tar -xzvf code-server2.1692-vsc1.39.2-linux-x86_64.tar.gz && chmod +x code-server2.1692-vsc1.39.2-linux-x86_64/code-server && \
