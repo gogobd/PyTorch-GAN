@@ -176,7 +176,7 @@ def sample_images(batches_done):
 
 plotter = None
 if opt.plot_interval != 0:
-    plotter = utils.VisdomLinePlotter(env_name='DiscoGAN Plots')
+    plotter = VisdomLinePlotter(env_name='DiscoGAN Plots')
 
 
 # ----------

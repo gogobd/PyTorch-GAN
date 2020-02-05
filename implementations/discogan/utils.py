@@ -1,4 +1,5 @@
 from visdom import Visdom
+import numpy as np
 
 class LambdaLR:
     def __init__(self, n_epochs, offset, decay_start_epoch):

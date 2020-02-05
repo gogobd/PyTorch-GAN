@@ -9,6 +9,7 @@ RUN apt-get update \
         git \
         unzip \
         screen \
+        vim \
     && apt-get clean
 
 # Install python miniconda3 + requirements
@@ -50,5 +51,5 @@ WORKDIR /PyTorch-GAN
 
 # Start container in notebook mode
 CMD /code-server2.1692-vsc1.39.2-linux-x86_64/code-server --allow-http --no-auth --data-dir / & \
+    python3 -m visdom.server & \
     jupyter-lab --ip="*" --no-browser --allow-root
-    
