@@ -8,6 +8,7 @@ RUN apt-get update \
         wget \
         git \
         unzip \
+        screen \
     && apt-get clean
 
 # Install python miniconda3 + requirements
