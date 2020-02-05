@@ -42,6 +42,7 @@ parser.add_argument("--lambda_gan", type=float, default=1.0, help="GAN loss weig
 parser.add_argument("--lambda_cyc", type=float, default=10.0, help="cycle loss weight")
 parser.add_argument("--lambda_pix", type=float, default=2.5, help="pixelwise loss weight")
 parser.add_argument("--lambda_id", type=float, default=1.5, help="identity loss weight")
+parser.add_argument("--plot_interval", type=int, default=0, help="Visdom plotting interval")
 opt = parser.parse_args()
 print(opt)
 
@@ -173,6 +174,11 @@ def sample_images(batches_done):
     save_image(img_sample, "images/%s/%s.png" % (opt.dataset_name, batches_done), nrow=4, normalize=True)
 
 
+plotter = None
+if opt.plot_interval != 0:
+    plotter = utils.VisdomLinePlotter(env_name='DiscoGAN Plots')
+
+
 # ----------
 #  Training
 # ----------
@@ -290,6 +296,14 @@ for epoch in range(opt.epoch, opt.n_epochs):
         # If at sample interval save image
         if batches_done % opt.sample_interval == 0:
             sample_images(batches_done)
+
+        if plotter and opt.plot_interval != 0 and batches_done % opt.plot_interval == 0:
+            plotter.plot('D loss', 'train', 'Discriminator Loss', batches_done, loss_D.item())
+            plotter.plot('G loss', 'train', 'Generator Loss', batches_done, loss_G.item())
+            plotter.plot('GAN loss', 'train', 'Adversarial Loss', batches_done, loss_GAN.item())
+            plotter.plot('pix loss', 'train', 'Pixelwise Loss', batches_done, loss_pixelwise.item())
+            plotter.plot('cyc loss', 'train', 'Cycle Loss', batches_done, loss_cycle.item())
+            plotter.plot('identity loss', 'train', 'Identity Loss', batches_done, loss_identity.item())
 
     if opt.checkpoint_interval != -1 and epoch % opt.checkpoint_interval == 0:
         # Save model checkpoints
