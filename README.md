@@ -52,7 +52,7 @@ Alternatively put it in an nvidia-docker:
 
 ```bash
 docker build -t pytorch-gan .
-docker run --gpus all -it --ipc=host -p 8080:8080 -p 8888:8888 -e PASSWORD='yourpassword' pytorch-gan
+docker run --gpus all -it --ipc=host -p 8080:8080 -p 8097:8097 -p 8888:8888 -e PASSWORD='yourpassword' pytorch-gan
 ```
 
 
